@@ -121,17 +121,17 @@ export default function Scene({ theme, scrollProgress }: SceneProps) {
         const w = canvas.width / dpr;
         const h = canvas.height / dpr;
 
-        // High-Definition Fit Ratio (Slightly zoomed out at 88% scale for maximum crispness)
-        const scaleFactor = 0.88;
+        // Immersive Full-Screen Cover Fit (Zoomed in to 100%+ scale to fill the hero section)
+        const scaleFactor = 1.05;
         const imgRatio = img.width / img.height;
         const canvasRatio = w / h;
         let dw: number, dh: number;
         if (canvasRatio > imgRatio) {
-          dh = h * scaleFactor;
-          dw = dh * imgRatio;
-        } else {
           dw = w * scaleFactor;
           dh = dw / imgRatio;
+        } else {
+          dh = h * scaleFactor;
+          dw = dh * imgRatio;
         }
         const dx = (w - dw) / 2;
         const dy = (h - dh) / 2;

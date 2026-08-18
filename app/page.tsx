@@ -121,6 +121,86 @@ function padFrame(num: number): string {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   AURA PROPRIETARY MATERIAL INTELLIGENCE SPECIFICATION DATA
+   ───────────────────────────────────────────────────────────────────────────── */
+
+interface MaterialSwatchItem {
+  name: string;
+  gradient: string;
+  detail: string;
+}
+
+interface PhaseMaterialData {
+  phaseNum: string;
+  title: string;
+  category: string;
+  spatialZone: "LIVING" | "DINING" | "KITCHEN";
+  materials: MaterialSwatchItem[];
+}
+
+const MATERIAL_PHASES: PhaseMaterialData[] = [
+  {
+    phaseNum: "01",
+    title: "ARCHITECTURAL FOUNDATION",
+    category: "FOUNDATION STUDY",
+    spatialZone: "LIVING",
+    materials: [
+      { name: "Raw Concrete", gradient: "from-[#696c75] via-[#4d4f57] to-[#34353b]", detail: "High-density cast concrete slab" },
+      { name: "Structural Oak", gradient: "from-[#ad8259] via-[#825d3a] to-[#593d22]", detail: "Hokkaido white oak structural timber" },
+      { name: "Clear Glass", gradient: "from-[#e8f4f8]/50 via-[#c2e2ec]/30 to-[#8bbdcc]/20", detail: "Low-iron architectural glazing" },
+    ],
+  },
+  {
+    phaseNum: "02",
+    title: "MATERIAL PALETTE",
+    category: "SPECIFICATION STUDY",
+    spatialZone: "LIVING",
+    materials: [
+      { name: "Hokkaido White Oak", gradient: "from-[#d9b896] via-[#b89572] to-[#8c6b49]", detail: "Quarter-sawn, matte organic wax" },
+      { name: "Calacatta Marble", gradient: "from-[#f5f4ef] via-[#dcdad0] to-[#b0aca0]", detail: "Honed velvet finish with calcic veining" },
+      { name: "Travertine", gradient: "from-[#e8dccb] via-[#c9b7a1] to-[#a39079]", detail: "Porous warm stone quarried in Tivoli" },
+      { name: "Brushed Bronze", gradient: "from-[#d4a373] via-[#a37548] to-[#694829]", detail: "Hand-rubbed patinated brass" },
+    ],
+  },
+  {
+    phaseNum: "03",
+    title: "FURNITURE STUDY",
+    category: "JOINERY & UPHOLSTERY",
+    spatialZone: "DINING",
+    materials: [
+      { name: "Sculptural Sofa", gradient: "from-[#474952] via-[#2f3036] to-[#1c1d21]", detail: "Bespoke low-profile charcoal velvet" },
+      { name: "Travertine Coffee Table", gradient: "from-[#e8dccb] via-[#c9b7a1] to-[#a39079]", detail: "Monolithic honed travertine slab" },
+      { name: "Bouclé Lounge Chair", gradient: "from-[#f0ebe1] via-[#d8cfc0] to-[#b3a896]", detail: "Unbleached virgin wool loop fabric" },
+      { name: "Custom Joinery", gradient: "from-[#6b4733] via-[#452b1e] to-[#29170f]", detail: "Smoked walnut acoustic louvers" },
+    ],
+  },
+  {
+    phaseNum: "04",
+    title: "LIGHTING STUDY",
+    category: "CIRCADIAN ILLUMINATION",
+    spatialZone: "DINING",
+    materials: [
+      { name: "Warm Ambient", gradient: "from-[#ffca80] via-[#e69533] to-[#b36200]", detail: "2700K indirect mood illumination" },
+      { name: "Recessed Lighting", gradient: "from-[#fff2e0] via-[#ffd699] to-[#cca366]", detail: "Low-glare architectural downlights" },
+      { name: "Concealed LED", gradient: "from-[#ffe8cc] via-[#ffc266] to-[#cc8000]", detail: "Linear joinery cove lighting" },
+      { name: "Bronze Pendant", gradient: "from-[#d4a373] via-[#a37548] to-[#694829]", detail: "Custom engineered pendant fixture" },
+    ],
+  },
+  {
+    phaseNum: "05",
+    title: "FINAL COMPOSITION",
+    category: "COMPLETED RESIDENCE",
+    spatialZone: "KITCHEN",
+    materials: [
+      { name: "Natural Oak", gradient: "from-[#d9b896] via-[#b89572] to-[#8c6b49]", detail: "Kyoto white oak surfaces" },
+      { name: "Warm Stone", gradient: "from-[#63656b] via-[#43444a] to-[#26272b]", detail: "Swiss basalt floor slabs" },
+      { name: "Soft Bouclé", gradient: "from-[#f0ebe1] via-[#d8cfc0] to-[#b3a896]", detail: "High-density comfort upholstery" },
+      { name: "Sculptural Greenery", gradient: "from-[#446b50] via-[#2d4734] to-[#18291d]", detail: "Curated organic botanical flora" },
+    ],
+  },
+];
+
+/* ─────────────────────────────────────────────────────────────────────────────
    MAIN PAGE COMPONENT (TypeScript)
    ───────────────────────────────────────────────────────────────────────────── */
 
@@ -174,6 +254,12 @@ export default function Home() {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [loadPercent, setLoadPercent] = useState<number>(0);
   const [preloaderGone, setPreloaderGone] = useState<boolean>(false);
+
+  // Material Intelligence State
+  const [heroScrollProgress, setHeroScrollProgress] = useState<number>(0);
+  const [isMaterialStudyOpen, setIsMaterialStudyOpen] = useState<boolean>(false);
+  const [activeLightingMode, setActiveLightingMode] = useState<"DAY" | "AMBIENT" | "EVENING">("AMBIENT");
+  const [hoveredSwatch, setHoveredSwatch] = useState<string | null>(null);
 
   /* ── 1. Lenis Smooth Scrolling Engine ───────────────────────────────────── */
   useEffect(() => {
@@ -285,18 +371,18 @@ export default function Home() {
     const W = canvas.width / dpr;
     const H = canvas.height / dpr;
 
-    // High-Definition Fit Ratio (Slightly zoomed out at 88% scale to preserve image resolution & crispness)
-    const scaleFactor = 0.88;
+    // Immersive Full-Screen Cover Fit (Zoomed in to 100%+ scale to fill the hero section)
+    const scaleFactor = 1.05;
     const imgAspect = 16 / 9;
     const canvasAspect = W / H;
 
     let drawW: number, drawH: number;
     if (canvasAspect > imgAspect) {
-      drawH = H * scaleFactor;
-      drawW = drawH * imgAspect;
-    } else {
       drawW = W * scaleFactor;
       drawH = drawW / imgAspect;
+    } else {
+      drawH = H * scaleFactor;
+      drawW = drawH * imgAspect;
     }
 
     const offsetX = (W - drawW) / 2;
@@ -305,11 +391,11 @@ export default function Home() {
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    // 1. Rich Radial Ambient Background Atmosphere behind canvas frame
+    // 1. Rich Luminous Radial Ambient Background Atmosphere behind canvas frame
     const bgGradient = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, Math.max(W, H) * 0.7);
-    bgGradient.addColorStop(0, "#13121a");
-    bgGradient.addColorStop(0.5, "#0a090e");
-    bgGradient.addColorStop(1, "#070709");
+    bgGradient.addColorStop(0, "#252233");
+    bgGradient.addColorStop(0.5, "#151320");
+    bgGradient.addColorStop(1, "#0d0c14");
     ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, W, H);
 
@@ -321,7 +407,9 @@ export default function Home() {
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
+    ctx.filter = "brightness(1.15) contrast(1.05)";
     ctx.drawImage(img, offsetX, offsetY, drawW, drawH);
+    ctx.filter = "none";
 
     // 3. Reset Shadow for Crisp Outline & Architectural Corner Brackets
     ctx.shadowColor = "transparent";
@@ -608,7 +696,9 @@ export default function Home() {
             }
           }
 
-          // 5. Live Atelier Telemetry & Progress HUD
+          // 5. Hero Scroll Progress state sync for Material Intelligence Panel
+          setHeroScrollProgress(p);
+
           if (hudContainerRef.current) {
             if (p > 0.03 && p < 0.98) {
               gsap.set(hudContainerRef.current, { opacity: 1, y: 0 });
@@ -621,31 +711,10 @@ export default function Home() {
             }
           }
 
-          if (hudFrameCounterRef.current) {
-            hudFrameCounterRef.current.textContent = `FRAME [ ${padFrame(frameNum)} / 300 ]`;
-          }
-          if (hudProgressBarRef.current) {
-            hudProgressBarRef.current.style.width = `${Math.round(p * 100)}%`;
-          }
-          if (hudPercentRef.current) {
-            hudPercentRef.current.textContent = `${Math.round(p * 100)}%`;
-          }
-
-          // Determine current phase name
           let activePhaseIdx = -1;
           chapterWindows.forEach((win, idx) => {
             if (p >= win.start && p <= win.end) activePhaseIdx = idx;
           });
-
-          if (hudPhaseTagRef.current) {
-            if (activePhaseIdx >= 0) {
-              hudPhaseTagRef.current.textContent = `PHASE 0${activePhaseIdx + 1} // ${chapterWindows[activePhaseIdx].name}`;
-            } else if (p >= 0.87) {
-              hudPhaseTagRef.current.textContent = `SANCTUARY COMPLETED // ADMIRATION`;
-            } else {
-              hudPhaseTagRef.current.textContent = `ATELIER SPEC // BLUEPRINT`;
-            }
-          }
 
           // Indicator Dots state
           indicatorDotRefs.current.forEach((dot, i) => {
@@ -664,11 +733,11 @@ export default function Home() {
               const dimP = Math.min((p - 0.88) / 0.12, 1);
               const easeDim = dimP * dimP;
               gsap.set(canvasRef.current, {
-                filter: `brightness(${1 - easeDim * 0.82}) blur(${easeDim * 20}px)`,
+                filter: `brightness(${1.15 - easeDim * 0.45}) blur(${easeDim * 15}px)`,
                 scale: 1 + easeDim * 0.03,
               });
             } else {
-              gsap.set(canvasRef.current, { filter: "none", scale: 1 });
+              gsap.set(canvasRef.current, { filter: "brightness(1.15) contrast(1.05)", scale: 1 });
             }
           }
 
@@ -1004,12 +1073,69 @@ export default function Home() {
             ref={preloaderContentRef}
             className="absolute inset-0 flex flex-col items-center justify-center pointer-events-auto px-6"
           >
-            <span className="text-[10px] tracking-[0.5em] text-[#C8956A] font-mono uppercase mb-4">
-              AURA ARCHITECTURAL ATELIER
-            </span>
+            {/* Smooth Eyebrow Crossfade */}
+            <div className="relative h-4 mb-4 flex items-center justify-center">
+              <span
+                className={`absolute transition-all duration-700 text-[10px] tracking-[0.5em] text-[#C8956A] font-mono uppercase ${
+                  loadPercent < 50 ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
+                }`}
+              >
+                SPATIAL ARCHITECTURE
+              </span>
+              <span
+                className={`absolute transition-all duration-700 text-[10px] tracking-[0.5em] text-[#C8956A] font-mono uppercase ${
+                  loadPercent >= 50 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+                }`}
+              >
+                AURA ARCHITECTURAL ATELIER
+              </span>
+            </div>
 
-            <h2 className="text-3xl md:text-5xl font-serif text-white font-light tracking-widest mb-10">
-              AURA
+            {/* Ultra-Clean 3D Slot Letter Morphing: INTERIOR DESIGN -> AURA INTERIOR */}
+            <h2 className="text-3xl md:text-5xl font-serif tracking-widest mb-10 min-h-[3.5rem] flex items-center justify-center select-none">
+              {(() => {
+                const source = "INTERIOR DESIGN".split("");
+                const target = "AURA INTERIOR".split("");
+                const maxLen = Math.max(source.length, target.length);
+                // Distribute letter flips smoothly between 10% and 85% progress
+                const factor = Math.min(1, Math.max(0, (loadPercent - 10) / 75));
+                const numFlipped = Math.floor(factor * (maxLen + 1));
+
+                return Array.from({ length: maxLen }).map((_, i) => {
+                  const srcChar = source[i] || "";
+                  const tgtChar = target[i] || "";
+                  const isFlipped = i < numFlipped;
+
+                  return (
+                    <span
+                      key={i}
+                      className="relative inline-flex items-center justify-center w-[0.65em] md:w-[0.72em] h-[1.3em] overflow-hidden align-middle"
+                    >
+                      {/* Source Letter (INTERIOR DESIGN) */}
+                      <span
+                        className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out transform ${
+                          isFlipped
+                            ? "-translate-y-full opacity-0 text-white/10"
+                            : "translate-y-0 opacity-90 text-white font-light"
+                        }`}
+                      >
+                        {srcChar === " " ? "\u00A0" : srcChar}
+                      </span>
+
+                      {/* Target Letter (AURA INTERIOR) */}
+                      <span
+                        className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ease-out transform ${
+                          isFlipped
+                            ? "translate-y-0 opacity-100 text-[#C8956A] font-light"
+                            : "translate-y-full opacity-0 text-[#C8956A]"
+                        }`}
+                      >
+                        {tgtChar === " " ? "\u00A0" : tgtChar}
+                      </span>
+                    </span>
+                  );
+                });
+              })()}
             </h2>
 
             {/* Negative space animated progress track */}
@@ -1020,9 +1146,8 @@ export default function Home() {
               />
             </div>
 
-            <div className="flex items-center gap-4 text-[10px] font-mono text-white/40 tracking-widest">
-              <span>LOADING FRAMES</span>
-              <span className="text-[#C8956A] font-semibold">{loadPercent}%</span>
+            <div className="flex items-center justify-center text-[10px] font-mono text-[#C8956A] tracking-[0.3em] font-semibold">
+              <span>{loadPercent}%</span>
             </div>
           </div>
         </div>
@@ -1249,18 +1374,18 @@ export default function Home() {
         <section
           id="story"
           ref={storySectionRef}
-          className="relative w-full h-screen overflow-hidden bg-[#070709]"
+          className="relative w-full h-screen overflow-hidden bg-[#0d0c12]"
         >
-          {/* Ambient Glowing Blobs & Radial Lighting */}
-          <div className="absolute top-1/4 left-1/6 w-[600px] h-[600px] bg-[#C8956A]/12 rounded-full blur-[150px] pointer-events-none animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/6 w-[700px] h-[700px] bg-amber-600/8 rounded-full blur-[180px] pointer-events-none animate-pulse" style={{ animationDuration: '7s' }} />
+          {/* Ambient Glowing Blobs & Luminous Lighting */}
+          <div className="absolute top-1/4 left-1/6 w-[700px] h-[700px] bg-[#C8956A]/25 rounded-full blur-[140px] pointer-events-none animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/6 w-[800px] h-[800px] bg-amber-500/18 rounded-full blur-[160px] pointer-events-none animate-pulse" style={{ animationDuration: '7s' }} />
 
           {/* Architectural Blueprint Grid Pattern */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff04_1px,transparent_1px),linear-gradient(to_bottom,#ffffff04_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
           {/* Precision Axis Lines */}
-          <div className="absolute top-1/2 left-8 right-8 h-[1px] border-b border-dashed border-white/10 pointer-events-none z-0" />
-          <div className="absolute left-1/2 top-8 bottom-8 w-[1px] border-r border-dashed border-white/10 pointer-events-none z-0" />
+          <div className="absolute top-1/2 left-8 right-8 h-[1px] border-b border-dashed border-white/15 pointer-events-none z-0" />
+          <div className="absolute left-1/2 top-8 bottom-8 w-[1px] border-r border-dashed border-white/15 pointer-events-none z-0" />
 
           {/* Sticky <canvas> background */}
           <canvas
@@ -1270,9 +1395,9 @@ export default function Home() {
             }`}
           />
 
-          {/* Cinematic Vignettes */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#070709]/85 via-transparent to-[#070709]/85 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#070709]/90 via-transparent to-[#070709]/70 pointer-events-none" />
+          {/* Lighter Cinematic Vignettes */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0d0c12]/40 via-transparent to-[#0d0c12]/40 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0d0c12]/50 via-transparent to-[#0d0c12]/30 pointer-events-none" />
 
           {/* Parallax Floating Ambient Monogram Watermark */}
           <div
@@ -1320,30 +1445,124 @@ export default function Home() {
             </div>
           )}
 
-          {/* ── Floating Live Atelier Telemetry & Progress HUD ───────────── */}
-          {isLoaded && (
-            <div
-              ref={hudContainerRef}
-              className="absolute top-24 md:top-28 right-6 md:right-12 z-20 opacity-0 pointer-events-none will-change-transform"
-            >
-              <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-xl px-4 py-3 shadow-[0_15px_35px_rgba(0,0,0,0.6)] flex flex-col gap-2 min-w-[210px]">
-                <div className="flex items-center justify-between text-[10px] font-mono text-[#C8956A] tracking-wider font-semibold">
-                  <span ref={hudFrameCounterRef}>FRAME [ 001 / 300 ]</span>
-                  <span ref={hudPercentRef}>0%</span>
-                </div>
-                <div className="w-full h-[2px] bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    ref={hudProgressBarRef}
-                    className="h-full bg-gradient-to-r from-[#C8956A] to-amber-200 w-0 transition-all duration-75"
-                  />
-                </div>
-                <div className="flex items-center justify-between text-[8px] font-mono text-white/40 tracking-widest uppercase">
-                  <span ref={hudPhaseTagRef}>ATELIER SPEC // BLUEPRINT</span>
-                  <span>LIVE SCRUB</span>
+          {/* Interactive Scene Lighting Scenario Tint Overlay */}
+          {activeLightingMode === "DAY" && (
+            <div className="absolute inset-0 bg-[#fffdf0]/5 mix-blend-overlay pointer-events-none z-10 transition-opacity duration-700" />
+          )}
+          {activeLightingMode === "AMBIENT" && (
+            <div className="absolute inset-0 bg-[#C8956A]/10 mix-blend-color-dodge pointer-events-none z-10 transition-opacity duration-700" />
+          )}
+          {activeLightingMode === "EVENING" && (
+            <div className="absolute inset-0 bg-[#0d122b]/35 mix-blend-multiply pointer-events-none z-10 transition-opacity duration-700" />
+          )}
+
+          {/* ── Top-Right "MATERIAL INTELLIGENCE" Luxury Specification Panel ───────────── */}
+          {isLoaded && (() => {
+            const currentPhaseIndex = Math.min(4, Math.floor(heroScrollProgress * 5));
+            const currentMaterialPhase = MATERIAL_PHASES[currentPhaseIndex] || MATERIAL_PHASES[0];
+            const currentSpatialZone: "LIVING" | "DINING" | "KITCHEN" =
+              heroScrollProgress < 0.35 ? "LIVING" : heroScrollProgress < 0.70 ? "DINING" : "KITCHEN";
+
+            return (
+              <div
+                ref={hudContainerRef}
+                className="absolute top-24 md:top-28 right-6 md:right-12 z-30 opacity-0 pointer-events-auto will-change-transform"
+              >
+                <div className="bg-black/65 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85)] rounded-2xl p-5 md:p-6 w-64 md:w-72 select-none relative overflow-hidden group/panel">
+                  {/* Top Accent Hairline */}
+                  <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#C8956A]/60 to-transparent" />
+
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[9px] font-mono tracking-[0.35em] text-[#C8956A] font-bold uppercase">
+                      MATERIAL INTELLIGENCE
+                    </span>
+                    <span className="text-[9px] font-mono text-white/40 font-semibold">
+                      {currentMaterialPhase.phaseNum} / 05
+                    </span>
+                  </div>
+
+                  {/* Phase Title */}
+                  <h4 className="text-xs font-serif font-light text-white uppercase tracking-wider mb-4 border-b border-white/10 pb-2">
+                    {currentMaterialPhase.title}
+                  </h4>
+
+                  {/* Material List with Tiny Realistic Swatches */}
+                  <div className="space-y-2.5 mb-4">
+                    {currentMaterialPhase.materials.map((mat, idx) => {
+                      const isHovered = hoveredSwatch === mat.name;
+                      return (
+                        <div
+                          key={idx}
+                          onMouseEnter={() => setHoveredSwatch(mat.name)}
+                          onMouseLeave={() => setHoveredSwatch(null)}
+                          className="relative flex items-center justify-between group/item cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            {/* Micro Realistic Swatch Dot */}
+                            <div className="relative">
+                              <span
+                                className={`block w-2.5 h-2.5 rounded-full bg-gradient-to-br ${mat.gradient} border border-white/30 transition-all duration-300 ${
+                                  isHovered ? "scale-125 shadow-[0_0_12px_rgba(200,149,106,0.8)] border-[#C8956A]" : ""
+                                }`}
+                              />
+                              {isHovered && (
+                                <span className="absolute inset-0 rounded-full bg-[#C8956A]/40 animate-ping" />
+                              )}
+                            </div>
+
+                            <span
+                              className={`text-xs font-sans font-light transition-colors duration-300 ${
+                                isHovered ? "text-[#C8956A] font-medium" : "text-white/80 group-hover/item:text-white"
+                              }`}
+                            >
+                              {mat.name}
+                            </span>
+                          </div>
+
+                          {/* Micro-Tooltip on Swatch Hover */}
+                          {isHovered && (
+                            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 bg-black/90 backdrop-blur-md border border-[#C8956A]/40 px-2.5 py-1 rounded text-[9px] font-mono text-[#C8956A] uppercase tracking-wider pointer-events-none whitespace-nowrap shadow-xl z-50 animate-fade-in">
+                              {mat.detail}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Secondary Spatial Navigation Indicator */}
+                  <div className="pt-3 border-t border-white/10 flex items-center justify-between text-[9px] font-mono text-white/40 uppercase tracking-widest mb-3">
+                    {(["LIVING", "DINING", "KITCHEN"] as const).map((zone) => {
+                      const isActive = currentSpatialZone === zone;
+                      return (
+                        <span
+                          key={zone}
+                          className={`transition-all duration-300 relative pb-0.5 ${
+                            isActive ? "text-[#C8956A] font-bold" : "hover:text-white/70"
+                          }`}
+                        >
+                          {zone}
+                          {isActive && (
+                            <span className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-[#C8956A] rounded-full" />
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
+
+                  {/* Explore Materials Link */}
+                  <button
+                    onClick={() => setIsMaterialStudyOpen(true)}
+                    className="pt-2.5 border-t border-white/5 w-full flex items-center justify-between text-[9px] font-mono text-[#C8956A] uppercase tracking-[0.25em] font-bold hover:text-white transition-colors group/btn cursor-pointer"
+                  >
+                    <span>EXPLORE MATERIALS</span>
+                    <span className="group-hover/btn:translate-x-1 transition-transform">→</span>
+                  </button>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ── Overlaying Story Chapter Glass Cards ─────────────────────── */}
           {isLoaded &&
@@ -1458,7 +1677,148 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          {/* ── Bottom-Right Floating AURA Material Control ─────────────────────────── */}
+          {isLoaded && (
+            <div className="fixed bottom-8 right-6 md:right-12 z-40 pointer-events-auto">
+              <button
+                onClick={() => setIsMaterialStudyOpen(true)}
+                onMouseEnter={() => {
+                  setCursorExpanded(true);
+                  setCursorText("Explore");
+                }}
+                onMouseLeave={() => setCursorExpanded(false)}
+                className="group flex items-center gap-3 px-4 py-2.5 rounded-full bg-black/60 backdrop-blur-xl border border-white/20 hover:border-[#C8956A] hover:bg-black/85 transition-all duration-300 shadow-[0_12px_35px_rgba(0,0,0,0.7)] cursor-none"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-[#C8956A] animate-pulse" />
+                <span className="text-[10px] font-mono font-semibold tracking-[0.25em] text-white/90 group-hover:text-[#C8956A] uppercase transition-colors">
+                  EXPLORE MATERIALS
+                </span>
+                <span className="text-[#C8956A] group-hover:translate-x-1 transition-transform text-xs">
+                  →
+                </span>
+              </button>
+            </div>
+          )}
         </section>
+
+        {/* ── Expanded "MATERIAL STUDY" Modal Interface ─────────────────────────── */}
+        {isMaterialStudyOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/75 backdrop-blur-2xl animate-fade-in pointer-events-auto">
+            <div className="relative max-w-3xl w-full bg-[#0d0d12]/95 backdrop-blur-2xl border border-[#C8956A]/40 rounded-3xl p-8 md:p-10 shadow-[0_35px_100px_rgba(0,0,0,0.95)] overflow-hidden">
+              {/* Top Hairline */}
+              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#C8956A] to-transparent" />
+
+              {/* Header */}
+              <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+                <div>
+                  <span className="text-[10px] font-mono tracking-[0.4em] text-[#C8956A] font-bold uppercase block mb-1">
+                    AURA SPECIFICATION ATELIER
+                  </span>
+                  <h3 className="text-2xl md:text-3xl font-serif text-white font-light tracking-tight">
+                    Material <em className="italic text-[#C8956A] font-normal">Study</em>
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsMaterialStudyOpen(false)}
+                  className="w-10 h-10 rounded-full border border-white/15 bg-white/5 hover:bg-white/15 text-white/70 hover:text-white flex items-center justify-center transition-colors cursor-pointer text-sm font-mono"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Material Grid by Categories */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                {/* WOOD */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#C8956A]/50 transition-colors group">
+                  <span className="text-[9px] font-mono tracking-[0.3em] text-[#C8956A] font-bold uppercase block mb-2">
+                    WOOD
+                  </span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-3 h-3 rounded-full bg-gradient-to-br from-[#d9b896] via-[#b89572] to-[#8c6b49] border border-white/30" />
+                    <h5 className="text-xs font-semibold text-white">Hokkaido White Oak</h5>
+                  </div>
+                  <p className="text-[10px] text-white/50 leading-relaxed font-light">
+                    Quarter-sawn linear timber with matte organic wax protection.
+                  </p>
+                </div>
+
+                {/* STONE */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#C8956A]/50 transition-colors group">
+                  <span className="text-[9px] font-mono tracking-[0.3em] text-[#C8956A] font-bold uppercase block mb-2">
+                    STONE
+                  </span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-3 h-3 rounded-full bg-gradient-to-br from-[#f5f4ef] via-[#dcdad0] to-[#b0aca0] border border-white/30" />
+                    <h5 className="text-xs font-semibold text-white">Calacatta / Travertine</h5>
+                  </div>
+                  <p className="text-[10px] text-white/50 leading-relaxed font-light">
+                    High-density Italian stone with honed velvet finish and calcic veining.
+                  </p>
+                </div>
+
+                {/* TEXTILE */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#C8956A]/50 transition-colors group">
+                  <span className="text-[9px] font-mono tracking-[0.3em] text-[#C8956A] font-bold uppercase block mb-2">
+                    TEXTILE
+                  </span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-3 h-3 rounded-full bg-gradient-to-br from-[#f0ebe1] via-[#d8cfc0] to-[#b3a896] border border-white/30" />
+                    <h5 className="text-xs font-semibold text-white">Natural Bouclé</h5>
+                  </div>
+                  <p className="text-[10px] text-white/50 leading-relaxed font-light">
+                    Unbleached virgin wool loop providing high acoustic dampening.
+                  </p>
+                </div>
+
+                {/* METAL */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-[#C8956A]/50 transition-colors group">
+                  <span className="text-[9px] font-mono tracking-[0.3em] text-[#C8956A] font-bold uppercase block mb-2">
+                    METAL
+                  </span>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="w-3 h-3 rounded-full bg-gradient-to-br from-[#d4a373] via-[#a37548] to-[#694829] border border-white/30" />
+                    <h5 className="text-xs font-semibold text-white">Brushed Bronze</h5>
+                  </div>
+                  <p className="text-[10px] text-white/50 leading-relaxed font-light">
+                    Hand-rubbed patinated brass architectural metalwork.
+                  </p>
+                </div>
+              </div>
+
+              {/* Lighting Scenario Interactive Selector */}
+              <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[10px] font-mono tracking-[0.3em] text-white/50 font-bold uppercase block mb-1">
+                    LIGHTING SCENARIO STUDY
+                  </span>
+                  <p className="text-xs text-white/70 font-light">
+                    Simulate circadian mood lighting across the sanctuary layout.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 bg-black/60 p-1.5 rounded-full border border-white/10">
+                  {(["DAY", "AMBIENT", "EVENING"] as const).map((mode) => {
+                    const active = activeLightingMode === mode;
+                    return (
+                      <button
+                        key={mode}
+                        onClick={() => setActiveLightingMode(mode)}
+                        className={`px-4 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase transition-all duration-300 cursor-pointer ${
+                          active
+                            ? "bg-[#C8956A] text-black shadow-md"
+                            : "text-white/60 hover:text-white"
+                        }`}
+                      >
+                        {mode}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ─────────────────────────────────────────────────────────────────
             PORTFOLIO SHOWCASE (Continuous Hero-Frame Drop & Sequential Exploration)
